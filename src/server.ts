@@ -184,8 +184,6 @@ function createHandler(
 
     res.status(code);
 
-    console.log(req.method);
-
     if (req.method === 'HEAD') {
       res.send();
     } else {
