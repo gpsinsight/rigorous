@@ -2,6 +2,8 @@ import * as fs from 'fs';
 import { serve, ServerOptions } from './server';
 import { debounce } from './debounce';
 
+/** Serves all Swagger specs within the specified directory from localhost.
+ * Any changes to spec files will be immediately included in the mock. */
 export async function watch(
   dir: string,
   options?: ServerOptions,

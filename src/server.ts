@@ -16,6 +16,7 @@ export type ServerOptions = {
   regex?: RegExp;
 };
 
+/** Serves all Swagger specs within the specified directory from localhost */
 export async function serve(
   dir: string,
   options?: ServerOptions,
