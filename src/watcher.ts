@@ -7,6 +7,7 @@ export async function watch(
   options?: ServerOptions,
 ): Promise<void> {
   let server = await serve(dir, options);
+  const regex = (options && options.regex) || /oas2\.json/;
   console.log();
 
   const watcher = fs.watch(dir, { recursive: true });
@@ -14,7 +15,7 @@ export async function watch(
   watcher.on('change', (eventType, filename) => {
     const fn = typeof filename === 'string' ? filename : filename.toString();
 
-    if (/oas2\.json/.test(fn)) {
+    if (regex.test(fn)) {
       console.log(`File changed: ${filename}`);
       restart();
     }
