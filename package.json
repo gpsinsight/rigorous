@@ -1,5 +1,5 @@
 {
-  "name": "mock-server",
+  "name": "api-mock-server",
   "version": "0.0.2",
   "description": "Base project for creating a console application in Typescript",
   "main": "./lib/index.js",
