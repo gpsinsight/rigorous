@@ -8,7 +8,7 @@
     "build": "tsc",
     "lint": "tslint -c tslint.json -e 'node_modules/**/*' '**/*.ts'",
     "test": "NODE_ENV=test nyc mocha --require source-map-support/register --require ts-node/register --recursive './src/**/*.tests.ts'",
-    "postinstall": "npm run build"
+    "postinstall": "tsc"
   },
   "keywords": [],
   "author": "",
