@@ -13,6 +13,7 @@ import { walk } from './walk';
 
 export type ServerOptions = {
   port?: number;
+  regex?: RegExp;
 };
 
 export async function serve(
@@ -21,13 +22,14 @@ export async function serve(
 ): Promise<Server> {
   const app = express();
   const port = (options && options.port) || 8000;
+  const regex = (options && options.regex) || /oas2\.json/;
   const apis: { [title: string]: string } = {};
 
   app.enable('trust proxy');
 
   app.use(commonLog);
 
-  for await (const specpath of walk(dir, '', /oas2\.json/)) {
+  for await (const specpath of walk(dir, '', regex)) {
     // Load the spec
     const spec = (await resolveRefs(
       JSON.parse(readFileSync(join(dir, specpath)).toString()),
@@ -38,7 +40,10 @@ export async function serve(
     spec.schemes = ['http'];
 
     // Serve the spec at the base path
-    if (!spec.basePath) continue;
+    if (!spec.basePath) {
+      console.warn(`${specpath} does not specify a base path. skipping...`);
+      continue;
+    }
     apis[`${spec.info.title} v${spec.info.version}`] = spec.basePath;
     app.use(spec.basePath, createSubapp(spec));
   }
