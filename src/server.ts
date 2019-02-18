@@ -14,6 +14,49 @@ import { walk } from './walk';
 export type ServerOptions = {
   port?: number;
   regex?: RegExp;
+  unauthorizedHandler?: ErrorHandler;
+  notFoundHandler?: ErrorHandler;
+  methodNotAllowedHandler?: ErrorHandler;
+  badRequestHandler?: ErrorHandler;
+  badResponseHandler?: ErrorHandler;
+  unknownHandler?: ErrorHandler;
+};
+
+const handleUnauthorized: ErrorHandler = () => ({
+  body: { message: 'unauthorized' },
+});
+
+const handleNotFound: ErrorHandler = ({ method, originalUrl }) => ({
+  body: { message: `Cannot ${method.toUpperCase()} ${originalUrl}` },
+});
+
+const handleMethodNotAllowed: ErrorHandler = ({ method, originalUrl }) => ({
+  body: {
+    message: `Method ${method.toUpperCase()} is not allowed for ${originalUrl}`,
+  },
+});
+
+const handleBadRequest: ErrorHandler = ({ errors }) => ({
+  body: { message: 'Bad request', errors },
+});
+
+const handleBadResponse: ErrorHandler = ({ errors }) => ({
+  body: { message: 'Bad response', errors },
+});
+
+const handleUnknown: ErrorHandler = ({ method, originalUrl }) => ({
+  body: { message: `Cannot ${method.toUpperCase()} ${originalUrl}` },
+});
+
+export type ErrorHandler = (args: {
+  method: string;
+  originalUrl: string;
+  errors: any[];
+}) => Response;
+
+export type Response = {
+  headers?: { [name: string]: string | number };
+  body: any;
 };
 
 /** Serves all Swagger specs within the specified directory from localhost */
@@ -24,6 +67,9 @@ export async function serve(
   const app = express();
   const port = (options && options.port) || 8000;
   const regex = (options && options.regex) || /oas2\.json/;
+  const unauthorizedHandler =
+    (options && options.unauthorizedHandler) || handleUnauthorized;
+  const unknownHandler = (options && options.unknownHandler) || handleUnknown;
   const apis: { [title: string]: string } = {};
 
   app.enable('trust proxy');
@@ -46,8 +92,25 @@ export async function serve(
       continue;
     }
     apis[`${spec.info.title} v${spec.info.version}`] = spec.basePath;
-    app.use(spec.basePath, createSubapp(spec));
+    app.use(spec.basePath, createSubapp(spec, options));
   }
+
+  // Create 401 handler for unauthorized requests
+  app.use((err, req, res, next) => {
+    if (err.code === 'AUTH_ERROR') {
+      if (!res.headersSent) {
+        const { method, originalUrl } = req;
+        const { headers, body } = unauthorizedHandler({
+          method,
+          originalUrl,
+          errors: [],
+        });
+        res.set(headers || {});
+        res.status(401).json(body);
+      }
+    }
+    next(err);
+  });
 
   // Catch-all 404 for non-spec URIs
   app.all('*', (req, res, next) => {
@@ -60,11 +123,24 @@ export async function serve(
   // Catch-all error handler
   app.use((err, req, res, next) => {
     if (!res.headersSent) {
-      const { errors } = req.openapi || res.openapi;
-      res.status(500).json({ errors });
+      const errors = [
+        ...(req.openapi.errors || []),
+        ...(res.openapi.errors || []),
+        ...[err].filter(x => x),
+      ];
+
+      const { method, originalUrl } = req;
+      const { headers, body } = unknownHandler({
+        method,
+        originalUrl,
+        errors,
+      });
+      res.set(headers || {});
+
+      res.status(500).json(body);
     }
-    console.error(JSON.stringify(err, null, 2));
   });
+
   return new Promise(resolve => {
     const server = app.listen(port, () => {
       console.log(
@@ -77,9 +153,20 @@ export async function serve(
   });
 }
 
-function createSubapp(spec: OpenAPI.Schema): express.Express {
+function createSubapp(
+  spec: OpenAPI.Schema,
+  options: ServerOptions,
+): express.Express {
   const subapp = express();
   const router = new Router(spec, subapp);
+  const notFoundHandler =
+    (options && options.notFoundHandler) || handleNotFound;
+  const methodNotAllowedHandler =
+    (options && options.methodNotAllowedHandler) || handleMethodNotAllowed;
+  const badRequestHandler =
+    (options && options.badRequestHandler) || handleBadRequest;
+  const badResponseHandler =
+    (options && options.badResponseHandler) || handleBadResponse;
 
   // Serve spec and docs
   subapp.get('/spec', (req, res) => {
@@ -91,23 +178,32 @@ function createSubapp(spec: OpenAPI.Schema): express.Express {
   const paths = new Set<string>();
   const verbs: { [path: string]: Set<string> } = {};
   for (const { path, verb, operation } of getOperations(spec)) {
-    // TODO: handle security
-    const x = operation.security || spec.security;
+    const security = (operation.security || spec.security).map(name =>
+      Object.keys(name).map(x => spec.securityDefinitions[x]),
+    );
 
     // Handle response
     paths.add(path);
     verbs[path] = verbs[path] || new Set<string>();
     verbs[path].add(verb);
     if (operation.operationId) {
-      router.use(operation.operationId, createHandler(path, verb, operation));
+      router.use(
+        operation.operationId,
+        createHandler(path, verb, operation, security),
+      );
     } else {
       console.log(`WARNING! No operation ID for ${verb.toUpperCase()} ${path}`);
     }
   }
 
   // Create OPTIONS handlers
+  const generalSecurity = spec.security.map(name =>
+    Object.keys(name).map(x => spec.securityDefinitions[x]),
+  );
   for (const path of paths) {
-    subapp.options(path, (req, res) => {
+    subapp.options(path, (req, res, next) => {
+      if (!evalSecurity(req, generalSecurity))
+        return next({ code: 'AUTH_ERROR' });
       verbs[path].add('options').add('head');
       res
         .status(200)
@@ -123,26 +219,41 @@ function createSubapp(spec: OpenAPI.Schema): express.Express {
   // Create 405 handlers for unhandled verbs
   for (const path of paths) {
     subapp.all(path, (req, res) => {
-      res.status(405).json({
-        details: `Method ${req.method.toUpperCase()} is not allow for ${
-          req.originalUrl
-        }`,
+      const { method, originalUrl } = req;
+      const { headers, body } = methodNotAllowedHandler({
+        method,
+        originalUrl,
+        errors: [],
       });
+      res.set(headers || {});
+      res.status(405).json(body);
     });
   }
 
   // Create catch all 404 handler for unspecified routes
   subapp.all('*', (req, res, next) => {
-    res.status(404).json({
-      details: `Cannot ${req.method.toUpperCase()} ${req.originalUrl}`,
+    const { method, originalUrl } = req;
+    const { headers, body } = notFoundHandler({
+      method,
+      originalUrl,
+      errors: [],
     });
+    res.set(headers || {});
+    res.status(404).json(body);
   });
 
   // Create 400 handler for request validation errors
   subapp.use((err, req, res, next) => {
     if (err.code === 'OPENAPI_ERRORS' && err.scope === 'request') {
       if (!res.headersSent) {
-        res.status(400).json({ errors: req.openapi.errors });
+        const { method, originalUrl } = req;
+        const { headers, body } = badRequestHandler({
+          method,
+          originalUrl,
+          errors: req.openapi.errors,
+        });
+        res.set(headers || {});
+        res.status(400).json(body);
       }
     }
     next(err);
@@ -154,11 +265,25 @@ function createSubapp(spec: OpenAPI.Schema): express.Express {
       if (!res.headersSent) {
         if (req.method === 'HEAD') {
           if (res.openapi.errors.some(e => e.type !== 'INVALID_BODY')) {
+            const { method, originalUrl } = req;
+            const { headers } = badResponseHandler({
+              method,
+              originalUrl,
+              errors: res.openapi.errors,
+            });
+            res.set(headers || {});
             res.status(500);
           }
           res.send();
         } else {
-          res.status(500).json({ errors: res.openapi.errors });
+          const { method, originalUrl } = req;
+          const { headers, body } = badResponseHandler({
+            method,
+            originalUrl,
+            errors: res.openapi.errors,
+          });
+          res.set(headers || {});
+          res.status(500).json(body);
         }
       }
     }
@@ -172,22 +297,27 @@ function createHandler(
   path: string,
   verb: string,
   operation: OpenAPI.Operation,
+  security: OpenAPI.SecurityScheme[][],
 ): RouteHandler {
-  return (req, res) => {
-    const { code, response } = selectResponse(operation.responses);
-
-    const seed = req.get('x-random-seed');
-
-    const mocker = new Mocker(seed);
-    const mock = mocker.createValue(response['schema']);
-    res.set('x-random-seed', `${mocker.seed}`);
-
-    res.status(code);
-
-    if (req.method === 'HEAD') {
-      res.send();
+  return (req, res, next) => {
+    if (!evalSecurity(req, security)) {
+      next({ code: 'AUTH_ERROR' });
     } else {
-      res.json(mock);
+      const { code, response } = selectResponse(operation.responses);
+
+      const seed = req.get('x-random-seed');
+
+      const mocker = new Mocker(seed);
+      const mock = mocker.createValue(response['schema']);
+      res.set('x-random-seed', `${mocker.seed}`);
+
+      res.status(code);
+
+      if (req.method === 'HEAD') {
+        res.send();
+      } else {
+        res.json(mock);
+      }
     }
   };
 }
@@ -214,5 +344,37 @@ function* getOperations(
     for (const verb in spec.paths[path]) {
       yield { path, verb, operation: spec.paths[path][verb] };
     }
+  }
+}
+
+function evalSecurity(
+  req: express.Request,
+  security: OpenAPI.SecurityScheme[][],
+): boolean {
+  for (const schemes of security) {
+    if (!schemes.some(scheme => !evalScheme(req, scheme))) return true;
+  }
+  return false;
+}
+
+function evalScheme(
+  req: express.Request,
+  scheme: OpenAPI.SecurityScheme,
+): boolean {
+  switch (scheme.type) {
+    case 'basic': {
+      const value = req.get('authorization');
+      return value && value.startsWith('Basic ');
+    }
+    case 'apiKey': {
+      const value =
+        scheme.in === 'header' ? req.get(scheme.name) : req.query(scheme.name);
+      return !!value;
+    }
+    case 'oauth2': {
+      return true;
+    }
+    default:
+      return false;
   }
 }
