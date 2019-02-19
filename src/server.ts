@@ -124,8 +124,8 @@ export async function serve(
   app.use((err, req, res, next) => {
     if (!res.headersSent) {
       const errors = [
-        ...(req.openapi.errors || []),
-        ...(res.openapi.errors || []),
+        ...((req.openapi && req.openapi.errors) || []),
+        ...((res.openapi && res.openapi.errors) || []),
         ...[err].filter(x => x),
       ];
 
