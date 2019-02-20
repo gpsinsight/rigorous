@@ -179,31 +179,33 @@ function createSubapp(
   // Create handlers for declared paths and verbs
   const paths = new Set<string>();
   const verbs: { [path: string]: Set<string> } = {};
-  for (const { path, verb, operation } of getOperations(spec)) {
-    const security = (operation.security || spec.security).map(name =>
+  for (const path of getPaths(spec)) {
+    for (const { verb, operation } of getOperations(path, spec)) {
+      const security = (operation.security || spec.security).map(name =>
+        Object.keys(name).map(x => spec.securityDefinitions[x]),
+      );
+
+      // Handle response
+      paths.add(path);
+      verbs[path] = verbs[path] || new Set<string>();
+      verbs[path].add(verb);
+      if (operation.operationId) {
+        router.use(
+          operation.operationId,
+          createHandler(path, verb, operation, security),
+        );
+      } else {
+        console.log(
+          `WARNING! No operation ID for ${verb.toUpperCase()} ${path}`,
+        );
+      }
+    }
+
+    // Create OPTIONS handler
+    const generalSecurity = spec.security.map(name =>
       Object.keys(name).map(x => spec.securityDefinitions[x]),
     );
-
-    // Handle response
-    paths.add(path);
-    verbs[path] = verbs[path] || new Set<string>();
-    verbs[path].add(verb);
-    if (operation.operationId) {
-      router.use(
-        operation.operationId,
-        createHandler(path, verb, operation, security),
-      );
-    } else {
-      console.log(`WARNING! No operation ID for ${verb.toUpperCase()} ${path}`);
-    }
-  }
-
-  // Create OPTIONS handlers
-  const generalSecurity = spec.security.map(name =>
-    Object.keys(name).map(x => spec.securityDefinitions[x]),
-  );
-  for (const path of paths) {
-    subapp.options(path, (req, res, next) => {
+    subapp.options(toExpressTemplate(path), (req, res, next) => {
       if (!evalSecurity(req, generalSecurity))
         return next({ code: 'AUTH_ERROR' });
       verbs[path].add('options').add('head');
@@ -216,11 +218,9 @@ function createSubapp(
         })
         .send();
     });
-  }
 
-  // Create 405 handlers for unhandled verbs
-  for (const path of paths) {
-    subapp.all(path, (req, res) => {
+    // Create 405 handlers for unhandled verbs
+    subapp.all(toExpressTemplate(path), (req, res) => {
       const { method, originalUrl } = req;
       const { headers, body } = methodNotAllowedHandler({
         method,
@@ -336,17 +336,22 @@ function selectResponse(
 }
 
 function* getOperations(
+  path: string,
   spec: OpenAPI.Schema,
 ): IterableIterator<{
-  path: string;
   verb: string;
   operation: OpenAPI.Operation;
 }> {
-  for (const path in spec.paths) {
-    for (const verb in spec.paths[path]) {
-      yield { path, verb, operation: spec.paths[path][verb] };
-    }
+  for (const verb in spec.paths[path]) {
+    yield { verb, operation: spec.paths[path][verb] };
   }
+}
+
+export function getPaths(spec: OpenAPI.Schema): string[] {
+  // Sort most to lest specific, then ASCIIbetically
+  return Object.keys(spec.paths).sort((a, b) =>
+    a.startsWith(b) ? -1 : b.startsWith(a) ? 1 : a.localeCompare(b),
+  );
 }
 
 function evalSecurity(
@@ -379,4 +384,12 @@ function evalScheme(
     default:
       return false;
   }
+}
+
+function toExpressTemplate(path: string): string {
+  return path
+    .split('{')
+    .join(':')
+    .split('}')
+    .join('');
 }
