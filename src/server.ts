@@ -2,6 +2,7 @@ import { readFileSync } from 'fs';
 import { Server } from 'http';
 import { join } from 'path';
 
+import * as bodyParser from 'body-parser';
 import * as express from 'express';
 import { resolveRefs } from 'json-refs';
 import { OpenAPI, Router, RouteHandler } from 'openapi-router';
@@ -74,6 +75,7 @@ export async function serve(
 
   app.enable('trust proxy');
 
+  app.use(bodyParser.json());
   app.use(commonLog);
 
   for await (const specpath of walk(dir, '', regex)) {
