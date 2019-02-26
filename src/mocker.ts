@@ -1,6 +1,7 @@
 import { OpenAPI } from 'openapi-router';
 
 import { Chance } from 'chance';
+import { randexp } from 'randexp';
 
 export class Mocker {
   constructor(seed?: number | string) {
@@ -37,6 +38,8 @@ export class Mocker {
   createString(schema: Str): string {
     if (schema.enum) {
       return this.r.pickone(schema.enum);
+    } else if (schema.pattern) {
+      return randexp(schema.pattern);
     }
     const options = schema['x-chance-options'] || {};
 
@@ -113,6 +116,7 @@ export type Num = {
 export type Str = {
   type: 'string';
   enum?: string[];
+  pattern?: string;
   minLength?: number;
   maxLength?: number;
   'x-chance-type'?: string;
