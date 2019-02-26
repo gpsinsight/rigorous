@@ -22,6 +22,7 @@
     "express": "^4.16.4",
     "json-refs": "^3.0.12",
     "openapi-router": "0.0.6",
+    "randexp": "^0.5.3",
     "swagger-ui-express": "^4.0.2",
     "typescript": "^3.3.3",
     "uuid": "^3.3.2"
