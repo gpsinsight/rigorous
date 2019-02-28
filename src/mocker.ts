@@ -105,11 +105,21 @@ export type Multi = {
 
 export type Int = {
   type: 'integer';
+  exclusiveMaximum?: boolean;
+  exclusiveMinimum?: boolean;
+  maximum?: number;
+  minimum?: number;
+  multipleOf?: number;
   'x-chance-options'?: any;
 };
 
 export type Num = {
   type: 'number';
+  exclusiveMaximum?: boolean;
+  exclusiveMinimum?: boolean;
+  maximum?: number;
+  minimum?: number;
+  multipleOf?: number;
   'x-chance-options'?: any;
 };
 
@@ -139,5 +149,6 @@ export type Arr = {
 export type Obj = {
   type: 'object';
   properties: { [name: string]: Val };
+  required?: string[];
   'x-chance-options'?: any;
 };
