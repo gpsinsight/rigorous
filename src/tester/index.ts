@@ -40,17 +40,22 @@ export class Tester {
       describe(category, () => {
         for (const testCase of categories[category]) {
           it(testCase.title, done => {
-            get(testCase.uri, { method: testCase.verb }, resp => {
-              if (typeof testCase['status'] === 'number') {
-                expect(resp.statusCode).to.equal(testCase['status']);
-              } else {
-                expect(resp.statusCode).to.not.be.lessThan(
-                  testCase['minStatus'],
-                );
-                expect(resp.statusCode).to.be.lessThan(testCase['maxStatus']);
-              }
-              done();
-            });
+            //console.log(testCase);
+            get(
+              testCase.uri,
+              { method: testCase.verb, headers: testCase.headers },
+              resp => {
+                if (typeof testCase['status'] === 'number') {
+                  expect(resp.statusCode).to.equal(testCase['status']);
+                } else {
+                  expect(resp.statusCode).to.not.be.lessThan(
+                    testCase['minStatus'],
+                  );
+                  expect(resp.statusCode).to.be.lessThan(testCase['maxStatus']);
+                }
+                done();
+              },
+            );
           });
         }
       });
@@ -98,7 +103,6 @@ export class Tester {
       body: null,
     };
 
-    // TODO: URI encode all but body params
     for (const parameter of required) {
       if (isRef(parameter)) {
       } else if (parameter.in === 'body') {
@@ -109,6 +113,49 @@ export class Tester {
         nominal.query[parameter.name] = this.mocker.createValue(parameter);
       } else if (parameter.in === 'header') {
         nominal.headers[parameter.name] = this.mocker.createValue(parameter);
+      }
+    }
+
+    const security =
+      this.spec.paths[pathPattern][verb].security || this.spec.security || [];
+
+    if (security.length) {
+      yield this.createTestCase(
+        'missing authentication',
+        verb,
+        pathPattern,
+        {
+          body: nominal.body ? { ...nominal.body } : nominal.body,
+          headers: { ...nominal.headers },
+          query: { ...nominal.query },
+          path: { ...nominal.path },
+        },
+        { status: 401 },
+      );
+
+      const securityRequirement = security[0];
+
+      for (const key in securityRequirement) {
+        const definition = this.spec.securityDefinitions[key];
+
+        const value = '74tybcqo874tbyqo874t3';
+
+        switch (definition.type) {
+          case 'basic':
+            nominal.headers['Authorization'] = value;
+            break;
+          case 'apiKey':
+            if (definition.in === 'header') {
+              nominal.headers[definition.name] = value;
+            } else {
+              nominal.query[definition.name] = value;
+            }
+            break;
+          default:
+            console.warn(
+              `Security type ${definition.type} is not yet supported.`,
+            );
+        }
       }
     }
 
@@ -186,15 +233,15 @@ export class Tester {
       const headers =
         parameter.in === 'header'
           ? { ...baseline.headers, [parameter.name]: variant.value }
-          : baseline.headers;
+          : { ...baseline.headers };
       const path =
         parameter.in === 'path'
           ? { ...baseline.path, [parameter.name]: variant.value }
-          : baseline.path;
+          : { ...baseline.path };
       const query =
         parameter.in === 'query'
           ? { ...baseline.query, [parameter.name]: variant.value }
-          : baseline.query;
+          : { ...baseline.query };
 
       yield this.createTestCase(
         title,
