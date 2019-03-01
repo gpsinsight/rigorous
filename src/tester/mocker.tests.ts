@@ -16,18 +16,30 @@ describe('mocker', () => {
           maximum: 96,
           exclusiveMaximum: true,
         },
-        value: {
-          type: 'number',
-          minimum: 0,
+        stuff: {
+          type: 'array',
+          items: { type: 'string' },
+          uniqueItems: true,
+          minItems: 2,
         },
-        meta: {
-          type: 'object',
-          properties: {
-            count: {
-              type: 'number',
-            },
-          },
-        },
+        // value: {
+        //   type: 'string',
+        //   minLength: 19,
+        //   maxLength: 52,
+        //   pattern: '^[0-9]+$',
+        // },
+        // position: {
+        //   type: 'number',
+        //   minimum: 0,
+        // },
+        // meta: {
+        //   type: 'object',
+        //   properties: {
+        //     count: {
+        //       type: 'number',
+        //     },
+        //   },
+        // },
       },
     };
 
@@ -37,6 +49,6 @@ describe('mocker', () => {
     const result = Array.from(sut.createObjectVariants(schema));
 
     // ASSERT
-    console.log(result);
+    //result.forEach(x => console.log(x));
   });
 });
