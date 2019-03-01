@@ -5,7 +5,9 @@ import { OpenAPI } from 'openapi-router';
 import { Chance } from 'chance';
 import { randexp } from 'randexp';
 
+import * as integerFactory from './integer-factory';
 import * as numberFactory from './number-factory';
+import * as stringFactory from './string-factory';
 
 export class Mocker {
   constructor(seed?: number | string) {
@@ -71,7 +73,7 @@ export class Mocker {
           yield* this.createArrayVariants(val);
           break;
         case 'boolean':
-          yield* this.createBooleanVariants(val);
+          yield* this.createBooleanVariants();
           break;
         default:
           //yield* '//TODO';
@@ -86,7 +88,6 @@ export class Mocker {
     }, {});
   }
 
-  // TODO
   *createObjectVariants(schema: Obj): IterableIterator<Variant> {
     const propertyNames = Object.keys(schema.properties);
     const required = schema.required || [];
@@ -108,7 +109,6 @@ export class Mocker {
             ...base,
             [name]: variant.value,
           },
-          isValid: false,
           reason: `${name} ${variant.reason}`,
         };
       }
@@ -120,32 +120,31 @@ export class Mocker {
       delete x[name];
       yield {
         value: x,
-        isValid: false,
         reason: `is missing property '${name}'`,
       };
     }
 
+    // TODO: min/max properties
+
+    // TODO: additionalProperties: false
+
     yield {
       value: this.r.string(),
-      isValid: false,
       reason: 'is a string',
     };
 
     yield {
       value: this.r.floating(),
-      isValid: false,
       reason: 'is a number',
     };
 
     yield {
       value: this.r.integer(),
-      isValid: false,
       reason: 'is an integer',
     };
 
     yield {
       value: [],
-      isValid: false,
       reason: 'is an empty array',
     };
   }
@@ -171,8 +170,14 @@ export class Mocker {
     return this.r.string({ length, ...options });
   }
 
-  // TODO
-  *createStringVariants(schema: Str): IterableIterator<Variant> {}
+  *createStringVariants(schema: Str): IterableIterator<Variant> {
+    yield* stringFactory.longerThanMaxLength(schema, this.r);
+    yield* stringFactory.shorterThanMinLength(schema, this.r);
+    yield* stringFactory.invalidFormat();
+    yield* stringFactory.invalidPattern(schema, this.r);
+    yield* stringFactory.notInEnum(schema, this.r);
+    yield* stringFactory.invalidType();
+  }
 
   createNumber(schema: Num): number {
     const options = schema['x-chance-options'] || {};
@@ -202,7 +207,6 @@ export class Mocker {
   }
 
   *createNumberVariants(schema: Num): IterableIterator<Variant> {
-    //yield* numberFactory.valid(schema, this.r);
     yield* numberFactory.equalToExclusiveMaximum(schema);
     yield* numberFactory.equalToExclusiveMinimum(schema);
     yield* numberFactory.greaterThanMaximum(schema);
@@ -216,20 +220,56 @@ export class Mocker {
     return this.r.integer(options);
   }
 
-  // TODO
-  *createIntegerVariants(schema: Int): IterableIterator<Variant> {}
+  *createIntegerVariants(schema: Int): IterableIterator<Variant> {
+    yield* integerFactory.equalToExclusiveMaximum(schema);
+    yield* integerFactory.equalToExclusiveMinimum(schema);
+    yield* integerFactory.greaterThanMaximum(schema);
+    yield* integerFactory.lessThanMinimum(schema);
+    yield* integerFactory.invalidMultipleOf(schema);
+    yield* integerFactory.invalidType(
+      this.createInteger(schema),
+      schema,
+      this.r,
+    );
+  }
 
   createBoolean(schema: Bool): boolean {
     const options = schema['x-chance-options'] || {};
     return this.r.bool(options);
   }
 
-  // TODO
-  *createBooleanVariants(schema: Bool): IterableIterator<Variant> {}
+  *createBooleanVariants(): IterableIterator<Variant> {
+    yield {
+      value: {},
+      reason: 'is an empty object',
+    };
+
+    yield {
+      value: [],
+      reason: 'is an empty array',
+    };
+
+    yield {
+      value: this.r.string(),
+      reason: 'is a string',
+    };
+
+    yield {
+      value: 'true',
+      reason: 'is a string representation of true',
+      allowInString: true,
+    };
+
+    yield {
+      value: 'false',
+      reason: 'is a string representation of false',
+      allowInString: true,
+    };
+  }
 
   createArray(schema: Arr): any[] {
     const min = schema.minItems || 0;
-    const max = schema.maxItems || min + this.r.integer({ min: 0, max: 5 });
+    const max = schema.maxItems || min + 5;
     const count = this.r.integer({ min, max });
 
     if (schema.uniqueItems) {
@@ -240,7 +280,106 @@ export class Mocker {
   }
 
   // TODO
-  *createArrayVariants(schema: Arr): IterableIterator<Variant> {}
+  *createArrayVariants(schema: Arr): IterableIterator<Variant> {
+    // min/max items
+    if (schema.minItems) {
+      if (schema.uniqueItems) {
+        yield {
+          value: this.r.unique(
+            () => this.createValue(schema.items),
+            schema.minItems - 1,
+          ),
+          reason: 'contains fewer items than minItems',
+        };
+      } else {
+        yield {
+          value: this.r.n(
+            () => this.createValue(schema.items),
+            schema.minItems - 1,
+          ),
+          reason: 'contains fewer items than minItems',
+        };
+      }
+    }
+
+    if (typeof schema.maxItems === 'number') {
+      if (schema.uniqueItems) {
+        yield {
+          value: this.r.unique(
+            () => this.createValue(schema.items),
+            schema.maxItems + 1,
+          ),
+          reason: 'contains more items than maxItems',
+        };
+      } else {
+        yield {
+          value: this.r.n(
+            () => this.createValue(schema.items),
+            schema.maxItems + 1,
+          ),
+          reason: 'contains more items than maxItems',
+        };
+      }
+    }
+
+    // uniqueItems
+    if (schema.uniqueItems) {
+      const min = schema.minItems || 1;
+      const max = schema.maxItems || min;
+
+      const count = min <= max ? max : min;
+      if (count > 1 && count <= max) {
+        const base = this.r.unique(() => this.createValue(schema.items), count);
+
+        base[1] = base[0];
+
+        yield {
+          value: base,
+          reason: `contains a duplicate value`,
+        };
+      }
+    }
+
+    // invalid item
+    const itemCount = schema.minItems || 0;
+    const validArray = schema.uniqueItems
+      ? this.r.unique(() => this.createValue(schema.items), itemCount)
+      : this.r.n(() => this.createValue(schema.items), itemCount);
+    for (const variant of this.createValueVariants(schema.items)) {
+      const variantArray = [...validArray];
+      variantArray[0] = variant.value;
+      yield {
+        value: variantArray,
+        reason: `[0] ${variant.reason}`,
+      };
+    }
+
+    // invalid types
+    yield {
+      value: {},
+      reason: 'is an empty object',
+    };
+
+    yield {
+      value: this.r.string(),
+      reason: 'is a string',
+    };
+
+    yield {
+      value: this.r.integer(),
+      reason: 'is an integer',
+    };
+
+    yield {
+      value: this.r.floating(),
+      reason: 'is a number',
+    };
+
+    yield {
+      value: true,
+      reason: 'is a boolean',
+    };
+  }
 
   get seed(): string {
     return this._seed;
@@ -250,8 +389,11 @@ export class Mocker {
   private readonly _seed: string;
 }
 
+/**
+ * Represents an invalid variant of a value
+ */
 export type Variant = {
   value: any;
   reason: string;
-  isValid: boolean;
+  allowInString?: boolean;
 };
