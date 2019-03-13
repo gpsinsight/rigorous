@@ -13,7 +13,7 @@ export const createMissingParameters: OperationTestFactory = {
           yield createTestCase(
             'request is missing body',
             verb,
-            pathPattern,
+            spec.basePath + pathPattern,
             { ...validRequest, body: null },
             { status: 400 },
             uriFactory,
@@ -23,7 +23,7 @@ export const createMissingParameters: OperationTestFactory = {
           yield createTestCase(
             `request is missing required query parameter "${parameter.name}"`,
             verb,
-            pathPattern,
+            spec.basePath + pathPattern,
             { ...validRequest, query },
             { status: 400 },
             uriFactory,
@@ -36,7 +36,7 @@ export const createMissingParameters: OperationTestFactory = {
           yield createTestCase(
             `request is missing required header "${parameter.name}"`,
             verb,
-            pathPattern,
+            spec.basePath + pathPattern,
             { ...validRequest, headers },
             { status: 400 },
             uriFactory,

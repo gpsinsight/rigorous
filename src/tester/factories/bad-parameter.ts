@@ -51,7 +51,7 @@ export const createBadParameters: OperationTestFactory = {
           yield createTestCase(
             title,
             verb,
-            pathPattern,
+            spec.basePath + pathPattern,
             {
               body,
               headers,
