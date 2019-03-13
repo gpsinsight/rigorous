@@ -23,6 +23,9 @@ import { createMissingParameters } from './factories/missing-parameter';
 import { createMethodNotAllowed } from './factories/method-not-allowed';
 import { createSmokeTests } from './factories/smoke-tests';
 
+export * from './factories';
+export * from './types';
+
 export async function createTestCases(
   spec: OpenAPI.Schema,
   testFactories: TestFactory<any, any>[],
