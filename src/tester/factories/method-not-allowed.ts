@@ -23,7 +23,7 @@ export const createMethodNotAllowed: PathTestFactory = {
       yield createTestCase(
         'Call with wrong method',
         verb,
-        pathPattern,
+        spec.basePath + pathPattern,
         { path: params },
         { status: 405 },
         uriFactory,
