@@ -1,6 +1,8 @@
-import { Verb, RequestParams, TestCase, UriFactory } from './types';
+import { Verb, RequestParams, TestCase, UriFactory } from '../types';
 import { OpenAPI } from 'openapi-router';
-import { Mocker } from './mocker';
+import { Mocker } from '../mocker';
+
+export { uriFactory } from './uri-factory';
 
 export function createTestCase(
   title: string,
@@ -94,36 +96,3 @@ export function createValidRequest(
 export function isRef(obj: any): obj is OpenAPI.Reference {
   return !!obj['$ref'];
 }
-
-export const uriFactory: UriFactory = (
-  pathPattern: string,
-  options?: {
-    path?: { [key: string]: string | number | boolean };
-    query?: { [key: string]: string | number | boolean };
-  },
-) => {
-  const path = options && options.path ? options.path : {};
-  const query = options && options.query ? options.query : {};
-
-  let uri = pathPattern;
-  for (const paramName in path) {
-    uri = uri
-      .split(`{${paramName}}`)
-      .join(`${encodeURIComponent(`${path[paramName]}`)}`);
-  }
-
-  const queryString = Object.keys(query)
-    .map(
-      key => [
-        `${encodeURIComponent(key)}=${encodeURIComponent(`${query[key]}`)}`,
-      ],
-      [],
-    )
-    .join('&');
-
-  if (queryString) {
-    uri += `?${queryString}`;
-  }
-
-  return uri;
-};
