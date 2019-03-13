@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { debounce } from './debounce';
 
-describe.only('debounce', () => {
+describe('debounce', () => {
   it('runs a function TWICE when called NOT immediately AFTER the wait period', async () => {
     // ARRANGE
     let x = 0;
