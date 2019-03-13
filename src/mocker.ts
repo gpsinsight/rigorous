@@ -8,6 +8,26 @@ export class Mocker {
     this._seed = `${seed || Math.floor(Math.random() * 10000000)}`;
     this.r = new Chance(this._seed);
   }
+  createPath(path: string, verb: string, spec: OpenAPI.Schema): string {
+    const operation = spec.paths[path][verb] as OpenAPI.Operation;
+
+    if (!operation) return path;
+
+    const params = operation.parameters.filter(
+      p => p['in'] === 'path',
+    ) as OpenAPI.Parameter[];
+
+    return params.reduce((result, param) => {
+      if (param.in === 'path') {
+        const mock = this.createValue(param)
+          .split('%')
+          .join('$');
+        return result.split(`{${param.name}}`).join(mock);
+      }
+      return result;
+    }, path);
+  }
+
   createValue(val: any) {
     if (!val) return;
     switch (val.type) {
