@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { createBadParameters } from './bad-parameter';
 import { Mocker } from '../mocker';
 import { OpenAPI } from 'openapi-router';
-import { getUriFactory } from '../utils';
+import { uriFactory } from '../utils';
 
 describe('createBadParameters', () => {
   const sut = createBadParameters;
@@ -29,8 +29,6 @@ describe('createBadParameters', () => {
     };
 
     const mocker = new Mocker();
-
-    const uriFactory = getUriFactory('http', 'localhost:3000');
 
     // ACT
     const results = sut.create(

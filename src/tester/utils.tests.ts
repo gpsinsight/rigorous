@@ -1,9 +1,7 @@
 import { expect } from 'chai';
-import { getUriFactory } from './utils';
+import { uriFactory } from './utils';
 
 describe('uriFactory', () => {
-  const uriFactory = getUriFactory('http', 'somehost:9001');
-
   it('replaces a single path param with a string', () => {
     // ARRANGE
     const pathPattern = '/widgets/{widgetId}';
@@ -13,7 +11,7 @@ describe('uriFactory', () => {
     const result = uriFactory(pathPattern, { path });
 
     // ASSERT
-    expect(result).to.equal('http://somehost:9001/widgets/1234');
+    expect(result).to.equal('/widgets/1234');
   });
 
   it('replaces a single path param with a number', () => {
@@ -25,7 +23,7 @@ describe('uriFactory', () => {
     const result = uriFactory(pathPattern, { path });
 
     // ASSERT
-    expect(result).to.equal('http://somehost:9001/widgets/12.34');
+    expect(result).to.equal('/widgets/12.34');
   });
 
   it('replaces a single path param with a boolean', () => {
@@ -37,7 +35,7 @@ describe('uriFactory', () => {
     const result = uriFactory(pathPattern, { path });
 
     // ASSERT
-    expect(result).to.equal('http://somehost:9001/widgets/true');
+    expect(result).to.equal('/widgets/true');
   });
 
   it('replaces multiple path params', () => {
@@ -49,7 +47,7 @@ describe('uriFactory', () => {
     const result = uriFactory(pathPattern, { path });
 
     // ASSERT
-    expect(result).to.equal('http://somehost:9001/widgets/1234/gizmos/9876');
+    expect(result).to.equal('/widgets/1234/gizmos/9876');
   });
 
   it('replaces duplicate path param', () => {
@@ -61,7 +59,7 @@ describe('uriFactory', () => {
     const result = uriFactory(pathPattern, { path });
 
     // ASSERT
-    expect(result).to.equal('http://somehost:9001/widgets/1234/gizmos/1234');
+    expect(result).to.equal('/widgets/1234/gizmos/1234');
   });
 
   it('tolerates extra params in path', () => {
@@ -73,7 +71,7 @@ describe('uriFactory', () => {
     const result = uriFactory(pathPattern, { path });
 
     // ASSERT
-    expect(result).to.equal('http://somehost:9001/widgets/1234/gizmos/{extra}');
+    expect(result).to.equal('/widgets/1234/gizmos/{extra}');
   });
 
   it('tolerates extra params in options', () => {
@@ -85,7 +83,7 @@ describe('uriFactory', () => {
     const result = uriFactory(pathPattern, { path });
 
     // ASSERT
-    expect(result).to.equal('http://somehost:9001/widgets/1234');
+    expect(result).to.equal('/widgets/1234');
   });
 
   it('adds a single string query parameter', () => {
@@ -97,7 +95,7 @@ describe('uriFactory', () => {
     const result = uriFactory(pathPattern, { query });
 
     // ASSERT
-    expect(result).to.equal('http://somehost:9001/widgets?foo=bar');
+    expect(result).to.equal('/widgets?foo=bar');
   });
 
   it('adds a single numeric query parameter', () => {
@@ -109,7 +107,7 @@ describe('uriFactory', () => {
     const result = uriFactory(pathPattern, { query });
 
     // ASSERT
-    expect(result).to.equal('http://somehost:9001/widgets?foo=12.34');
+    expect(result).to.equal('/widgets?foo=12.34');
   });
 
   it('adds a single boolean query parameter', () => {
@@ -121,7 +119,7 @@ describe('uriFactory', () => {
     const result = uriFactory(pathPattern, { query });
 
     // ASSERT
-    expect(result).to.equal('http://somehost:9001/widgets?foo=false');
+    expect(result).to.equal('/widgets?foo=false');
   });
 
   it('adds multiple query parameters', () => {
@@ -133,6 +131,6 @@ describe('uriFactory', () => {
     const result = uriFactory(pathPattern, { query });
 
     // ASSERT
-    expect(result).to.equal('http://somehost:9001/widgets?foo=bar&fizz=buzz');
+    expect(result).to.equal('/widgets?foo=bar&fizz=buzz');
   });
 });
