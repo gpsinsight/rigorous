@@ -128,5 +128,5 @@ export const getUriFactory = (
     uri += `?${queryString}`;
   }
 
-  return `${scheme}://${host}${uri}`;
+  return uri;
 };
