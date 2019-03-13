@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { uriFactory } from './utils';
+import { uriFactory } from './';
 
 describe('uriFactory', () => {
   it('replaces a single path param with a string', () => {
