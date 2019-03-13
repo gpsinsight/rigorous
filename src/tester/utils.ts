@@ -95,10 +95,7 @@ export function isRef(obj: any): obj is OpenAPI.Reference {
   return !!obj['$ref'];
 }
 
-export const getUriFactory = (
-  scheme: 'http' | 'https',
-  host: string,
-): UriFactory => (
+export const uriFactory: UriFactory = (
   pathPattern: string,
   options?: {
     path?: { [key: string]: string | number | boolean };

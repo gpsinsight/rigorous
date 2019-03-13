@@ -17,7 +17,7 @@ import {
   isPathTestFactory,
   isOperationTestFactory,
 } from './types';
-import { createValidRequest, getUriFactory } from './utils';
+import { createValidRequest, uriFactory } from './utils';
 import { createBadParameters } from './factories/bad-parameter';
 import { createMissingParameters } from './factories/missing-parameter';
 import { createMethodNotAllowed } from './factories/method-not-allowed';
@@ -49,12 +49,7 @@ function* _createTestCases(
     mocker?: Mocker;
   },
 ): IterableIterator<TestCase> {
-  const scheme = options && options.scheme ? options.scheme : 'http';
-  const host =
-    options && options.host ? options.host : spec.host || 'localhost';
   const mocker = options && options.mocker ? options.mocker : new Mocker();
-
-  const uriFactory = getUriFactory(scheme, host);
 
   for (const factory of testFactories) {
     if (isSpecTestFactory(factory)) {
