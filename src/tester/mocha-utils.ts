@@ -18,7 +18,7 @@ export function generate(testCases: TestCase[], options?: {}): string {
   // be lost if the code is regenerated.
   // -----------------------------------------------------------
     
-  import { expect } from 'chai'
+  const { expect } = require('chai');
   
   const host = process.env['TEST_HOST'] || 'localhost';
   const scheme = process.env['TEST_SCHEME'] || 'http';
