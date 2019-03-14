@@ -23,6 +23,8 @@ export function generate(testCases: TestCase[], options?: {}): string {
   const host = process.env['TEST_HOST'] || 'localhost';
   const scheme = process.env['TEST_SCHEME'] || 'http';
 
+  const { get } = require(scheme === 'https' ? 'https' : 'http');
+
   ${Object.keys(categories)
     .map(key => generateDescribe(key, categories[key]))
     .join('\n\n')}
