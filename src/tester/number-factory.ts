@@ -117,6 +117,12 @@ export function* invalidType(
   yield {
     value: [],
     reason: 'is an empty array',
+    allowInString: true,
+  };
+
+  yield {
+    value: [valid, valid],
+    reason: 'is a multi-element array',
   };
 
   yield {
