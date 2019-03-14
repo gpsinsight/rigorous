@@ -48,11 +48,14 @@ export function generateDescribe(name: string, testCases: TestCase[]): string {
 export function generateIt(testCase: TestCase): string {
   const uri = `\`\${scheme}://\${host}${testCase.uri}\``;
 
-  const options = testCase.headers
-    ? `{ method: ${s(testCase.verb)}, headers: ${JSON.stringify(
-        testCase.headers,
-      )} }`
-    : `{ method: ${s(testCase.verb)} }`;
+  const options = {};
+  options['method'] = testCase.verb.toUpperCase();
+  if (testCase.headers && Object.keys(testCase.headers).length) {
+    options['headers'] = testCase.headers;
+  }
+  const optionsStr = Object.keys(options).length
+    ? JSON.stringify(options) + ','
+    : '';
 
   const expectation =
     typeof testCase['status'] === 'number'
@@ -63,7 +66,7 @@ export function generateIt(testCase: TestCase): string {
   return `it(${s(testCase.title)}, done => {
     get(
       ${uri},
-      ${options},
+        ${optionsStr}
       resp => {
         ${expectation}
         done();
