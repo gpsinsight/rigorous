@@ -89,6 +89,7 @@ export function* invalidType(): IterableIterator<Variant> {
   yield {
     value: [],
     reason: 'is an empty array',
+    allowInString: true,
   };
 
   yield {
