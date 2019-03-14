@@ -1,3 +1,5 @@
+import { Chance } from 'chance';
+
 import { Str } from '../mocker';
 import { Variant } from './mocker';
 

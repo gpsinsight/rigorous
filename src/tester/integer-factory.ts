@@ -1,3 +1,5 @@
+import { Chance } from 'chance';
+
 import { Int } from '../mocker';
 import { Variant } from './mocker';
 

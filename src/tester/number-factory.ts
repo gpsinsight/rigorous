@@ -1,3 +1,5 @@
+import { Chance } from 'chance';
+
 import { Num } from '../mocker';
 import { Variant } from './mocker';
 
@@ -105,7 +107,7 @@ export function* invalidMultipleOf(schema: Num): IterableIterator<Variant> {
 
 export function* invalidType(
   valid: number,
-  chance: Chance.Chance,
+  chance: Chance,
 ): IterableIterator<Variant> {
   yield {
     value: {},
