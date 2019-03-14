@@ -34,6 +34,7 @@ export function generate(testCases: TestCase[], options?: {}): string {
       useTabs: false,
       tabWidth: 2,
       trailingComma: 'all',
+      parser: 'babel',
     },
   );
 }
