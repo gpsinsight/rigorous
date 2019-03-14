@@ -25,7 +25,10 @@ export function createTestCase(
     title,
     verb,
     uri,
-    headers,
+    headers:
+      body && Object.keys(body).length
+        ? { ...headers, 'content-type': 'application/json' } // TODO: build from spec
+        : headers,
     body,
     ...status,
   };
