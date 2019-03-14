@@ -107,7 +107,7 @@ export function* invalidMultipleOf(schema: Num): IterableIterator<Variant> {
 
 export function* invalidType(
   valid: number,
-  chance: Chance,
+  chance: Chance.Chance,
 ): IterableIterator<Variant> {
   yield {
     value: {},
