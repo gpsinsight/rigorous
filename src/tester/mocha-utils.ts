@@ -23,7 +23,7 @@ export function generate(testCases: TestCase[], options?: {}): string {
   const host = process.env['TEST_HOST'] || 'localhost';
   const scheme = process.env['TEST_SCHEME'] || 'http';
 
-  const { get } = require(scheme === 'https' ? 'https' : 'http');
+  const { request } = require(scheme === 'https' ? 'https' : 'http');
 
   ${Object.keys(categories)
     .map(key => generateDescribe(key, categories[key]))
@@ -63,16 +63,24 @@ export function generateIt(testCase: TestCase): string {
       : `expect(resp.statusCode).to.not.be.lessThan(${testCase['minStatus']});
           expect(resp.statusCode).to.be.lessThan(${testCase['maxStatus']});`;
 
+  const bodyStr = testCase.body
+    ? `const body = ${s(JSON.stringify(testCase.body))};\n\n`
+    : '';
+
+  const writeBodyStr = bodyStr ? 'req.write(body);' : '';
+
   return `it(${s(testCase.title)}, done => {
-    get(
-      ${uri},
+      ${bodyStr}
+      const req = request(
+        ${uri},
         ${optionsStr}
-      resp => {
-        ${expectation}
-        done();
-      },
-    );
-  });`;
+        resp => {
+          ${expectation}
+          done();
+        },
+      );
+      ${writeBodyStr}req.end();
+    });`;
 }
 
 function s(str: string): string {
