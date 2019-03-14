@@ -1,6 +1,8 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
+import { describe, it } from 'mocha';
+
 import { get } from 'http';
 
 import { expect } from 'chai';
