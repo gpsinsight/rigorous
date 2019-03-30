@@ -348,10 +348,85 @@ function* getOperations(
 }
 
 export function getPaths(spec: OpenAPI.Schema): string[] {
-  // Sort most to lest specific, then ASCIIbetically
-  return Object.keys(spec.paths).sort((a, b) =>
+  const tree: RouteTree = Object.keys(spec.paths).reduce(
+    (acc, path) => addRoute(acc, path),
+    {},
+  );
+
+  return Array.from(traverse(tree)).map(x => '/' + x);
+}
+
+export type RouteTree = { [seg: string]: RouteTree };
+
+export function addRoute(tree: RouteTree, path: string): RouteTree {
+  const i = path.substr(1).indexOf('/');
+
+  if (i === -1) {
+    const x = path.substr(1);
+    return {
+      ...tree,
+      [x]: tree[x] ? addRoute(tree[x], '') : null,
+    };
+  }
+
+  const a = path.substr(1, i);
+  const b = path.substr(i + 1);
+
+  if (tree[a] === null) {
+    return {
+      ...tree,
+      [a]: addRoute({ '': null }, b),
+    };
+  } else if (tree[a]) {
+    return {
+      ...tree,
+      [a]: addRoute(tree[a], b),
+    };
+  } else {
+    return {
+      ...tree,
+      [a]: addRoute({}, b),
+    };
+  }
+}
+
+export function* traverse(tree: RouteTree): IterableIterator<string> {
+  const nodes = Object.keys(tree);
+
+  const literal = nodes
+    .filter(node => !node.startsWith('{') && node !== '')
+    .sort((a, b) =>
     a.startsWith(b) ? -1 : b.startsWith(a) ? 1 : a.localeCompare(b),
   );
+  const params = nodes.filter(node => node.startsWith('{') && node !== '');
+  const empty = nodes.filter(node => node === '');
+
+  for (const node of literal) {
+    if (tree[node])
+      for (const child of traverse(tree[node])) {
+        if (child) yield node + '/' + child;
+        else yield node;
+      }
+    else yield node;
+  }
+
+  for (const node of params) {
+    if (tree[node])
+      for (const child of traverse(tree[node])) {
+        if (child) yield node + '/' + child;
+        else yield node;
+      }
+    else yield node;
+  }
+
+  for (const node of empty) {
+    if (tree[node])
+      for (const child of traverse(tree[node])) {
+        if (child) yield node + '/' + child;
+        else yield node;
+      }
+    else yield node;
+  }
 }
 
 function evalSecurity(
