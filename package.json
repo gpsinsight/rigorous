@@ -8,7 +8,7 @@
     "build": "tsc",
     "lint": "tslint -c tslint.json -e 'node_modules/**/*' '**/*.ts'",
     "test": "NODE_ENV=test nyc mocha --require source-map-support/register --require ts-node/register --recursive './src/**/*.tests.ts'",
-    "postinstall": "tsc"
+    "prepack": "npm run build"
   },
   "keywords": [
     "testing",
@@ -20,6 +20,9 @@
   ],
   "author": "",
   "license": "MIT",
+  "files": [
+    "/lib"
+  ],
   "dependencies": {
     "@types/body-parser": "^1.17.0",
     "@types/express": "^4.16.1",
