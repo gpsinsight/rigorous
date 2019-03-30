@@ -42,6 +42,6 @@ describe('createBadParameters', () => {
     );
 
     // ASSERT
-    console.log(Array.from(results));
+    // console.log(Array.from(results));
   });
 });
