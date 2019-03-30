@@ -8,6 +8,8 @@ before_install:
   - npm i -g npm@^6
 install:
   - npm ci
+  - npm i g --save-dev codecov
 script:
   - npm run build
   - npm t
+  - codecov
