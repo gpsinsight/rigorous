@@ -1,6 +1,6 @@
 {
   "name": "gpsi-mock-server",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "Base project for creating a console application in Typescript",
   "main": "./lib/index.js",
   "scripts": {
