@@ -1,3 +1,7 @@
+[![build](https://img.shields.io/travis/gpsinsight/rigorous.svg)](https://travis-ci.org/gpsinsight/rigorous)
+[![code coverage](https://img.shields.io/codecov/c/gh/gpsinsight/rigorous.svg)](https://codecov.io/gh/gpsinsight/rigorous)
+[![npm](https://img.shields.io/npm/v/rigorous.svg)](https://www.npmjs.com/package/rigorous)
+
 # rigorous
 
 Mocking and testing utilities for developing APIs with Swagger/OpenAPI
