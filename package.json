@@ -3,6 +3,7 @@
   "version": "0.2.9",
   "description": "Mocking and testing utilities for developing APIs with Swagger/OpenAPI",
   "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "scripts": {
     "prebuild": "npm run lint && rm -rf lib/*",
     "build": "tsc",
