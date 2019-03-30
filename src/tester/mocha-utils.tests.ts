@@ -12,7 +12,7 @@ import {
 import { generate } from './mocha-utils';
 
 describe('mocha-utils', () => {
-  it('works', async () => {
+  it.skip('works', async () => {
     // ARRANGE
     const spec = JSON.parse(
       readFileSync(
