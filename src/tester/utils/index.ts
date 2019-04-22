@@ -41,7 +41,9 @@ export function createValidRequest(
 ): RequestParams {
   const { parameters } = operation;
 
-  const required = parameters.filter(p => !isRef(p) && p.required);
+  const required = parameters
+    ? parameters.filter(p => !isRef(p) && p.required)
+    : [];
   const request: RequestParams = {
     path: {},
     headers: {},
