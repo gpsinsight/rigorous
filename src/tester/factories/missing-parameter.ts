@@ -5,7 +5,9 @@ export const createMissingParameters: OperationTestFactory = {
   type: 'operation',
   create: function*({ verb, pathPattern, spec, validRequest }, { uriFactory }) {
     const { parameters } = spec.paths[pathPattern][verb];
-    const required = parameters.filter(p => !isRef(p) && p.required);
+    const required = parameters
+      ? parameters.filter(p => !isRef(p) && p.required)
+      : [];
 
     for (const parameter of required) {
       if (!isRef(parameter)) {
