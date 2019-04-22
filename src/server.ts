@@ -181,9 +181,13 @@ function createSubapp(
   const verbs: { [path: string]: Set<string> } = {};
   for (const path of getPaths(spec)) {
     for (const { verb, operation } of getOperations(path, spec)) {
-      const security = (operation.security || spec.security).map(name =>
-        Object.keys(name).map(x => spec.securityDefinitions[x]),
-      );
+      const security =
+        (operation.security || spec.security) &&
+        (operation.security || spec.security).map(
+          name =>
+            Object.keys(name) &&
+            Object.keys(name).map(x => spec.securityDefinitions[x]),
+        );
 
       // Handle response
       paths.add(path);
@@ -202,9 +206,13 @@ function createSubapp(
     }
 
     // Create OPTIONS handler
-    const generalSecurity = spec.security.map(name =>
-      Object.keys(name).map(x => spec.securityDefinitions[x]),
-    );
+    const generalSecurity =
+      spec.security &&
+      spec.security.map(
+        name =>
+          Object.keys(name) &&
+          Object.keys(name).map(x => spec.securityDefinitions[x]),
+      );
     subapp.options(toExpressTemplate(path), (req, res, next) => {
       if (!evalSecurity(req, generalSecurity))
         return next({ code: 'AUTH_ERROR' });
@@ -396,8 +404,8 @@ export function* traverse(tree: RouteTree): IterableIterator<string> {
   const literal = nodes
     .filter(node => !node.startsWith('{') && node !== '')
     .sort((a, b) =>
-    a.startsWith(b) ? -1 : b.startsWith(a) ? 1 : a.localeCompare(b),
-  );
+      a.startsWith(b) ? -1 : b.startsWith(a) ? 1 : a.localeCompare(b),
+    );
   const params = nodes.filter(node => node.startsWith('{') && node !== '');
   const empty = nodes.filter(node => node === '');
 
