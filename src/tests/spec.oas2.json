@@ -1,0 +1,27 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Roundtrip test spec"
+  },
+  "basePath": "/v1/asdf",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "asdf",
+        "parameters": [
+          {
+            "in": "query",
+            "type": "integer",
+            "required": true,
+            "name": "intval"
+          }
+        ],
+        "responses": {
+          "200": { "description": "test" }
+        }
+      }
+    }
+  },
+  "definitions": {}
+}

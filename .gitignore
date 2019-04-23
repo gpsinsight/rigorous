@@ -64,3 +64,6 @@ typings/
 
 # Build output
 lib/
+
+# Generated code
+*.g.*

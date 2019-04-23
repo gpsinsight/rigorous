@@ -1,0 +1,17 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Minimum viable spec"
+  },
+  "basePath": "/minimal",
+  "paths": {
+    "/": {
+      "get": {
+        "responses": {
+          "200": { "description": "test" }
+        }
+      }
+    }
+  }
+}
