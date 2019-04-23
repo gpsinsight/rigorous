@@ -11,6 +11,7 @@ import * as swaggerUi from 'swagger-ui-express';
 import { commonLog } from './common-log';
 import { Mocker } from './mocker';
 import { walk } from './walk';
+import uuid = require('uuid');
 
 export type ServerOptions = {
   port?: number;
@@ -87,6 +88,17 @@ export async function serve(
     // Override host and schemes
     spec.host = `localhost:${port}`;
     spec.schemes = ['http'];
+
+    // Create missing operation IDs
+    for (const pathPattern in spec.paths) {
+      for (const verb in spec.paths[pathPattern]) {
+        if (!verb.startsWith('x-') && verb !== '$ref') {
+          if (!spec.paths[pathPattern][verb].operationId) {
+            spec.paths[pathPattern][verb].operationId = uuid.v4();
+          }
+        }
+      }
+    }
 
     // Serve the spec at the base path
     if (!spec.basePath) {
