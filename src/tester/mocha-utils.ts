@@ -20,7 +20,6 @@ export function generate(testCases: TestCase[], options?: {}): string {
     
   const { expect } = require('chai');
   
-  const host = process.env['TEST_HOST'] || 'localhost';
   const scheme = process.env['TEST_SCHEME'] || 'http';
 
   const { request } = require(scheme === 'https' ? 'https' : 'http');
@@ -46,7 +45,7 @@ export function generateDescribe(name: string, testCases: TestCase[]): string {
 }
 
 export function generateIt(testCase: TestCase): string {
-  const uri = `\`\${scheme}://\${host}${testCase.uri}\``;
+  const uri = `\`\${scheme}://\${process.env['TEST_HOST'] || 'localhost'}${testCase.uri}\``;
 
   const options = {};
   options['method'] = testCase.verb.toUpperCase();
