@@ -453,6 +453,7 @@ function evalSecurity(
   req: express.Request,
   security: OpenAPI.SecurityScheme[][],
 ): boolean {
+  if (!security || !security.length) return true;
   for (const schemes of security) {
     if (!schemes.some(scheme => !evalScheme(req, scheme))) return true;
   }
