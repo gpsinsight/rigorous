@@ -1,7 +1,7 @@
 language: node_js
 node_js:
-  - 'lts/boron'   #6.x  - Maintenance LTS
-  - 'lts/carbon'  #8.x  - Maintenance LTS
+  # - 'lts/boron'   #6.x  - Maintenance LTS
+  # - 'lts/carbon'  #8.x  - Maintenance LTS
   - 'lts/dubnium' #10.x - Active LTS
   - 'stable'      #11.x - Current Release
 before_install:
