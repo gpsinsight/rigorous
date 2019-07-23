@@ -6,7 +6,7 @@ let server: Server;
 
 before(async () => {
   process.env['TEST_HOST'] = `localhost:${port}`;
-  server = await serve(srcDir, { port });
+  server = await serve(srcDir, { port, quiet: true });
 });
 
 after(() => {
