@@ -16,6 +16,7 @@ import uuid = require('uuid');
 export type ServerOptions = {
   port?: number;
   regex?: RegExp;
+  quiet?: boolean;
   unauthorizedHandler?: ErrorHandler;
   notFoundHandler?: ErrorHandler;
   methodNotAllowedHandler?: ErrorHandler;
@@ -77,7 +78,10 @@ export async function serve(
   app.enable('trust proxy');
 
   app.use(bodyParser.json());
-  app.use(commonLog);
+
+  if (!options || !options.quiet) {
+    app.use(commonLog);
+  }
 
   for await (const specpath of walk(dir, '', regex)) {
     // Load the spec
