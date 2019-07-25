@@ -83,6 +83,8 @@ export async function serve(
     app.use(commonLog);
   }
 
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(null));
+
   for await (const specpath of walk(dir, '', regex)) {
     // Load the spec
     const spec = (await resolveRefs(
@@ -190,7 +192,9 @@ function createSubapp(
   subapp.get('/spec', (req, res) => {
     res.json(spec);
   });
-  subapp.use('/docs', swaggerUi.serve, swaggerUi.setup(spec));
+  subapp.use('/docs', (req, res) => {
+    res.redirect(`/docs/?url=${spec.basePath || ''}/spec`);
+  });
 
   // Create handlers for declared paths and verbs
   const paths = new Set<string>();
