@@ -1,6 +1,6 @@
 {
   "name": "rigorous",
-  "version": "0.2.16",
+  "version": "0.3.0",
   "description": "Mocking and testing utilities for developing APIs with Swagger/OpenAPI",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
