@@ -217,7 +217,29 @@ export class Mocker {
 
   createInteger(schema: Int): number {
     const options = schema['x-chance-options'] || {};
-    return this.r.integer(options);
+
+    if (typeof schema.maximum === 'number') {
+      options.max = schema.maximum;
+    }
+    if (typeof schema.minimum === 'number') {
+      options.min = schema.minimum;
+    }
+
+    let value = this.r.integer(options);
+
+    if (schema.multipleOf) {
+      value -= value % schema.multipleOf;
+
+      if (typeof schema.minimum === 'number' && value < schema.minimum) {
+        value += schema.multipleOf;
+      }
+    }
+
+    if (typeof schema.maximum !== 'number' || value < schema.maximum) {
+      return value;
+    } else {
+      throw new Error('Cannot find valid value number');
+    }
   }
 
   *createIntegerVariants(schema: Int): IterableIterator<Variant> {
