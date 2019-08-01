@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Obj, Int } from '../mocker';
+import { Obj, Int } from '../types';
 import { Mocker } from './mocker';
 import * as Ajv from 'ajv';
 

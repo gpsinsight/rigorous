@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 
-import { Num } from '../mocker';
+import { Num } from '../types';
 
 import {
   equalToExclusiveMaximum,

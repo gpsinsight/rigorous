@@ -1,6 +1,6 @@
 import { Chance } from 'chance';
 
-import { Str } from '../mocker';
+import { Str } from '../types';
 import { Variant } from './mocker';
 
 export function* longerThanMaxLength(
