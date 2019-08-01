@@ -9,7 +9,7 @@ import { OpenAPI, Router, RouteHandler } from 'openapi-router';
 import * as swaggerUi from 'swagger-ui-express';
 
 import { commonLog } from './common-log';
-import { Mocker } from './mocker';
+import { Mocker } from './tester/mocker';
 import { walk } from './walk';
 import uuid = require('uuid');
 
