@@ -26,7 +26,7 @@ export function* shorterThanMinLength(
   ) {
     yield {
       value: chance.string({ length: schema.minLength - 1 }),
-      reason: `is shorter than the minLength of ${schema.maxLength}`,
+      reason: `is shorter than the minLength of ${schema.minLength}`,
     };
   }
 }
