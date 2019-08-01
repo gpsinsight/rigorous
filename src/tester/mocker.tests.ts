@@ -1,6 +1,9 @@
 import { expect } from 'chai';
-import { Obj } from '../mocker';
+import { Obj, Int } from '../mocker';
 import { Mocker } from './mocker';
+import * as Ajv from 'ajv';
+
+const ajv = new Ajv({ allErrors: true });
 
 describe('mocker', () => {
   it('works', () => {
@@ -50,5 +53,152 @@ describe('mocker', () => {
 
     // ASSERT
     //result.forEach(x => console.log(x));
+  });
+
+  describe('valid integers', () => {
+    it('mocks an interger greater than a minimum of zero', () => {
+      // ARRANGE
+      const schema: Int = {
+        type: 'integer',
+        minimum: 0,
+      };
+      const validate = ajv.compile(schema);
+
+      const sut = new Mocker();
+
+      // ACT
+      const result = sut.createInteger(schema);
+
+      // ASSERT
+      validate(result);
+      expect(validate.errors || []).to.be.empty;
+    });
+
+    it('mocks an interger greater than a minimum of a positive integer', () => {
+      // ARRANGE
+      const schema: Int = {
+        type: 'integer',
+        minimum: 20,
+      };
+      const validate = ajv.compile(schema);
+
+      const sut = new Mocker();
+
+      // ACT
+      const result = sut.createInteger(schema);
+
+      // ASSERT
+      validate(result);
+      expect(validate.errors || []).to.be.empty;
+    });
+
+    it('mocks an interger greater than a minimum of a negative integer', () => {
+      // ARRANGE
+      const schema: Int = {
+        type: 'integer',
+        minimum: -20,
+      };
+      const validate = ajv.compile(schema);
+
+      const sut = new Mocker();
+
+      // ACT
+      const result = sut.createInteger(schema);
+
+      // ASSERT
+      validate(result);
+      expect(validate.errors || []).to.be.empty;
+    });
+
+    it('mocks an interger less than a maximum of zero', () => {
+      // ARRANGE
+      const schema: Int = {
+        type: 'integer',
+        maximum: 0,
+      };
+      const validate = ajv.compile(schema);
+
+      const sut = new Mocker();
+
+      // ACT
+      const result = sut.createInteger(schema);
+
+      // ASSERT
+      validate(result);
+      expect(validate.errors || []).to.be.empty;
+    });
+
+    it('mocks an interger less than a maximum of a positive integer', () => {
+      // ARRANGE
+      const schema: Int = {
+        type: 'integer',
+        maximum: 20,
+      };
+      const validate = ajv.compile(schema);
+
+      const sut = new Mocker();
+
+      // ACT
+      const result = sut.createInteger(schema);
+
+      // ASSERT
+      validate(result);
+      expect(validate.errors || []).to.be.empty;
+    });
+
+    it('mocks an interger less than a maximum of a negative integer', () => {
+      // ARRANGE
+      const schema: Int = {
+        type: 'integer',
+        maximum: -20,
+      };
+      const validate = ajv.compile(schema);
+
+      const sut = new Mocker();
+
+      // ACT
+      const result = sut.createInteger(schema);
+
+      // ASSERT
+      validate(result);
+      expect(validate.errors || []).to.be.empty;
+    });
+
+    it('mocks an interger that is a multiple of another integer', () => {
+      // ARRANGE
+      const schema: Int = {
+        type: 'integer',
+        multipleOf: 1000,
+      };
+      const validate = ajv.compile(schema);
+
+      const sut = new Mocker();
+
+      // ACT
+      const result = sut.createInteger(schema);
+
+      // ASSERT
+      validate(result);
+      expect(validate.errors || []).to.be.empty;
+    });
+
+    it('mocks an interger (with a mimimum) that is a multiple of another integer', () => {
+      // ARRANGE
+      const schema: Int = {
+        type: 'integer',
+        multipleOf: 1000,
+        minimum: 6453,
+      };
+      const validate = ajv.compile(schema);
+
+      const sut = new Mocker();
+
+      // ACT
+      const result = sut.createInteger(schema);
+
+      // ASSERT
+      validate(result);
+      expect(validate.errors || []).to.be.empty;
+    });
   });
 });
