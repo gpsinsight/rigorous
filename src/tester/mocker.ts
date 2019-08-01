@@ -1,4 +1,4 @@
-import { Arr, Bool, Int, Num, Obj, Str, Val } from '../mocker';
+import { Arr, Bool, Int, Num, Obj, Str, Val } from '../types';
 
 import { OpenAPI } from 'openapi-router';
 

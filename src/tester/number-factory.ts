@@ -1,6 +1,6 @@
 import { Chance } from 'chance';
 
-import { Num } from '../mocker';
+import { Num } from '../types';
 import { Variant } from './mocker';
 
 export function* equalToExclusiveMaximum(
