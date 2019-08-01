@@ -8,13 +8,136 @@
   "paths": {
     "/": {
       "get": {
-        "operationId": "asdf",
         "parameters": [
           {
             "in": "query",
             "type": "integer",
             "required": true,
             "name": "intval"
+          }
+        ],
+        "responses": {
+          "200": { "description": "test" }
+        }
+      }
+    },
+    "/strings/minLength": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "type": "string",
+            "required": true,
+            "name": "value",
+            "minLength": 20
+          }
+        ],
+        "responses": {
+          "200": { "description": "test" }
+        }
+      }
+    },
+    "/strings/maxLength": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "type": "string",
+            "required": true,
+            "name": "value",
+            "maxLength": 20
+          }
+        ],
+        "responses": {
+          "200": { "description": "test" }
+        }
+      }
+    },
+    "/strings/minAnMaxLength": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "type": "string",
+            "required": true,
+            "name": "value",
+            "minLength": 10,
+            "maxLength": 20
+          }
+        ],
+        "responses": {
+          "200": { "description": "test" }
+        }
+      }
+    },
+    "/integers": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "type": "integer",
+            "required": true,
+            "name": "minimum-is-zero",
+            "minimum": 0
+          },
+          {
+            "in": "query",
+            "type": "integer",
+            "required": true,
+            "name": "minimum-is-positive",
+            "minimum": 20
+          },
+          {
+            "in": "query",
+            "type": "integer",
+            "required": true,
+            "name": "minimum-is-negative",
+            "minimum": 20
+          },
+          {
+            "in": "query",
+            "type": "integer",
+            "required": true,
+            "name": "maximum-is-zero",
+            "maximum": 0
+          },
+          {
+            "in": "query",
+            "type": "integer",
+            "required": true,
+            "name": "maximum-is-positive",
+            "maximum": 20
+          },
+          {
+            "in": "query",
+            "type": "integer",
+            "required": true,
+            "name": "maximum-is-negative",
+            "maximum": 20
+          },
+          {
+            "in": "query",
+            "type": "integer",
+            "required": true,
+            "name": "minimum-and-maximum",
+            "minimum": 20,
+            "maximum": 50
+          },
+          {
+            "in": "query",
+            "type": "integer",
+            "required": true,
+            "name": "multipleOf",
+            "multipleOf": 1000
+          },
+          {
+            "in": "query",
+            "type": "integer",
+            "required": true,
+            "name": "multipleOf-minimum-and-maximum",
+            "multipleOf": 1000,
+            "minimum": 0,
+            "maximum": 100000
           }
         ],
         "responses": {
